@@ -1,30 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pill Counter</title>
+  
+  <!-- 💡 防止瀏覽器快取 HTML，確保每次開啟都是最新版本 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <title>藥丸自動計數器</title>
   <style>
     :root {
-      --primary-color: #2563eb;
+      --primary: #2563eb;
       --primary-hover: #1d4ed8;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
       --text-muted: #64748b;
-      --border-color: #e2e8f0;
+      --border: #e2e8f0;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
+      background-color: var(--bg);
+      color: var(--text);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -32,57 +38,47 @@
       padding: 1rem;
     }
 
-    .container {
-      background-color: var(--card-bg);
+    .card {
+      background-color: var(--card);
       width: 100%;
-      max-width: 680px;
+      max-width: 480px;
       padding: 2rem;
       border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+      text-align: center;
     }
 
     h1 {
       font-size: 1.5rem;
       font-weight: 700;
-      text-align: center;
       margin-bottom: 0.5rem;
     }
 
     p.subtitle {
       font-size: 0.9rem;
       color: var(--text-muted);
-      text-align: center;
       margin-bottom: 1.5rem;
     }
 
-    /* Controls & Upload Area */
-    .upload-section {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .file-input-wrapper {
+    /* 上傳區域 */
+    .file-dropzone {
       position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 2px dashed var(--border-color);
+      border: 2px dashed var(--border);
       border-radius: 12px;
-      padding: 2rem 1rem;
+      padding: 1.5rem 1rem;
       background-color: #f1f5f9;
       cursor: pointer;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
     }
 
-    .file-input-wrapper:hover {
-      border-color: var(--primary-color);
+    .file-dropzone:hover {
+      border-color: var(--primary);
       background-color: #eff6ff;
     }
 
-    .file-input-wrapper input[type="file"] {
+    .file-dropzone input[type="file"] {
       position: absolute;
       top: 0;
       left: 0;
@@ -92,29 +88,29 @@
       cursor: pointer;
     }
 
-    .upload-placeholder {
-      text-align: center;
+    .file-label {
       color: var(--text-muted);
-      pointer-events: none;
+      font-size: 0.95rem;
     }
 
-    .upload-placeholder span {
+    .file-label strong {
       display: block;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-top: 0.5rem;
+      color: var(--text);
+      font-size: 1rem;
+      margin-top: 0.25rem;
     }
 
+    /* 按鈕 */
     .btn {
-      background-color: var(--primary-color);
-      color: #ffffff;
+      background-color: var(--primary);
+      color: #fff;
       border: none;
-      padding: 0.85rem 1.5rem;
+      width: 100%;
+      padding: 0.85rem;
       font-size: 1rem;
       font-weight: 600;
       border-radius: 8px;
       cursor: pointer;
-      width: 100%;
       transition: background-color 0.2s ease;
     }
 
@@ -127,142 +123,126 @@
       cursor: not-allowed;
     }
 
-    /* Status & Pill Count Display */
-    .status-badge {
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 600;
-      padding: 0.75rem;
+    /* 相片預覽 */
+    .preview-box {
+      margin-top: 1.5rem;
+      display: none;
       border-radius: 8px;
-      margin-bottom: 1rem;
+      overflow: hidden;
+      max-height: 250px;
+    }
+
+    .preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 顯示結果卡片 */
+    .result-card {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: 12px;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
       display: none;
     }
 
-    .status-badge.loading {
+    .result-card.loading {
       display: block;
-      background-color: #e0f2fe;
+      background-color: #f0f9ff;
+      border-color: #bae6fd;
       color: #0369a1;
     }
 
-    .status-badge.success {
+    .result-card.error {
       display: block;
-      background-color: #dcfce7;
-      color: #15803d;
-    }
-
-    .status-badge.error {
-      display: block;
-      background-color: #fee2e2;
+      background-color: #fef2f2;
+      border-color: #fecaca;
       color: #b91c1c;
     }
 
-    /* Image & Overlay Canvas Container */
-    .canvas-container {
-      position: relative;
-      width: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      background-color: #000000;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    #preview-img {
-      width: 100%;
-      height: auto;
+    .result-card.success {
       display: block;
-      object-fit: contain;
     }
 
-    #boxes-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      pointer-events: none; /* Allows user to press-and-hold image on mobile */
+    .result-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #15803d;
+      line-height: 1.2;
+    }
+
+    .result-label {
+      font-size: 0.9rem;
+      color: #166534;
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Pill Counter</h1>
-    <p class="subtitle">Upload or capture a photo to automatically count pills</p>
+  <div class="card">
+    <h1>藥丸自動計數器</h1>
+    <p class="subtitle">上傳或拍攝藥丸相片，即時計算數量</p>
 
-    <div class="upload-section">
-      <div class="file-input-wrapper">
-        <input type="file" id="file-input" accept="image/*" />
-        <div class="upload-placeholder" id="upload-label">
-          📁 <span>Choose an image or take a photo</span>
-        </div>
+    <div class="file-dropzone">
+      <input type="file" id="file-input" accept="image/*" />
+      <div class="file-label" id="file-label">
+        📷 <span>點擊上傳或拍照</span>
+        <strong id="file-name">未選擇檔案</strong>
       </div>
-      <button class="btn" id="submit-btn" disabled>Start Counting</button>
     </div>
 
-    <!-- Status Output -->
-    <div class="status-badge" id="status-badge"></div>
+    <button class="btn" id="submit-btn" disabled>開始計算數量</button>
 
-    <!-- Canvas Preview Container -->
-    <div class="canvas-container" id="canvas-container">
-      <img id="preview-img" alt="Pill preview" />
-      <canvas id="boxes-canvas"></canvas>
+    <!-- 圖片預覽 -->
+    <div class="preview-box" id="preview-box">
+      <img id="preview-img" alt="藥丸預覽" />
+    </div>
+
+    <!-- 結果顯示區 -->
+    <div class="result-card" id="result-card">
+      <div id="result-content"></div>
     </div>
   </div>
 
   <script>
-    // =========================================================================
-    // CONFIGURATION
-    // Replace this URL with your live deployed Render API URL
-    // =========================================================================
-    const API_URL = "https://pill-counter-api.onrender.com/count";
+    // 💡 記得替換成你 Render 部署成功後的 URL
+    const API_URL = "https://your-render-app.onrender.com/count";
 
-    // DOM Elements
     const fileInput = document.getElementById("file-input");
-    const uploadLabel = document.getElementById("upload-label");
+    const fileName = document.getElementById("file-name");
     const submitBtn = document.getElementById("submit-btn");
-    const statusBadge = document.getElementById("status-badge");
-    const canvasContainer = document.getElementById("canvas-container");
+    const previewBox = document.getElementById("preview-box");
     const previewImg = document.getElementById("preview-img");
-    const canvas = document.getElementById("boxes-canvas");
+    const resultCard = document.getElementById("result-card");
+    const resultContent = document.getElementById("result-content");
 
-    // Global variable to store last API response for window resize redraws
-    let lastDetectionData = null;
-
-    // 1. Handle File Selection
+    // 1. 選擇圖片預覽
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
-      uploadLabel.querySelector("span").textContent = file.name;
+      fileName.textContent = file.name;
       submitBtn.disabled = false;
 
-      // Reset UI states
-      statusBadge.className = "status-badge";
-      statusBadge.style.display = "none";
-      lastDetectionData = null;
+      // 預覽圖片
+      previewImg.src = URL.createObjectURL(file);
+      previewBox.style.display = "block";
 
-      // Render image preview
-      const objectUrl = URL.createObjectURL(file);
-      previewImg.src = objectUrl;
-
-      // Clear previous canvas drawing
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      previewImg.onload = () => {
-        canvasContainer.style.display = "flex";
-        alignCanvasSize();
-      };
+      // 隱藏之前的結果
+      resultCard.className = "result-card";
+      resultCard.style.display = "none";
     });
 
-    // 2. Submit Image to FastAPI Backend
+    // 2. 發送至 FastAPI 後端
     submitBtn.addEventListener("click", async () => {
       const file = fileInput.files[0];
       if (!file) return;
 
-      // Update UI state
       submitBtn.disabled = true;
-      setStatus("Analyzing image with YOLO26...", "loading");
+      showLoading("正在分析藥丸數量...");
 
       const formData = new FormData();
       formData.append("file", file);
@@ -274,92 +254,44 @@
         });
 
         if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.detail || `Server Error (${response.status})`);
+          throw new Error(`伺服器回應錯誤 (${response.status})`);
         }
 
         const data = await response.json();
 
         if (data.status === "success") {
-          lastDetectionData = data;
-          setStatus(`Detected: ${data.pill_count} Pill(s)`, "success");
-          
-          // Render bounding boxes on Canvas
-          drawBoxes(data.boxes, data.image_size);
+          showSuccess(data.pill_count);
         } else {
-          setStatus("Detection failed. Please try again.", "error");
+          showError("計算失敗，請再試一次。");
         }
       } catch (err) {
-        console.error("API Error:", err);
-        setStatus(`Error: ${err.message}`, "error");
+        console.error(err);
+        showError(`發生錯誤: ${err.message}`);
       } finally {
         submitBtn.disabled = false;
       }
     });
 
-    // 3. Draw Bounding Boxes on Canvas
-    function drawBoxes(boxes, originalSize) {
-      if (!boxes || !originalSize) return;
-
-      const ctx = canvas.getContext("2d");
-
-      // Ensure canvas pixels perfectly align with the displayed image dimensions
-      alignCanvasSize();
-
-      const displayWidth = previewImg.clientWidth;
-      const displayHeight = previewImg.clientHeight;
-
-      // Calculate ratio between displayed size and original image dimensions
-      const scaleX = displayWidth / originalSize.width;
-      const scaleY = displayHeight / originalSize.height;
-
-      // Canvas Style Configurations
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#00FF00"; // Bright green bounding box
-      ctx.lineWidth = Math.max(2, Math.round(displayWidth / 200)); // Responsive line width
-      ctx.fillStyle = "#00FF00";
-      ctx.font = `bold ${Math.max(12, Math.round(displayWidth / 35))}px sans-serif`;
-
-      // Iterate over each detection box [x1, y1, x2, y2]
-      boxes.forEach((item) => {
-        const [x1, y1, x2, y2] = item.box;
-
-        // Scale coordinates to fit screen display
-        const scaledX1 = x1 * scaleX;
-        const scaledY1 = y1 * scaleY;
-        const boxWidth = (x2 - x1) * scaleX;
-        const boxHeight = (y2 - y1) * scaleY;
-
-        // Draw Bounding Box Rectangle
-        ctx.strokeRect(scaledX1, scaledY1, boxWidth, boxHeight);
-
-        // Draw Class Label & Confidence Score
-        const labelText = `${item.label} ${Math.round(item.confidence * 100)}%`;
-        const textY = scaledY1 > 20 ? scaledY1 - 6 : scaledY1 + 18;
-        ctx.fillText(labelText, scaledX1 + 2, textY);
-      });
+    // 顯示 Loading
+    function showLoading(msg) {
+      resultCard.className = "result-card loading";
+      resultContent.innerHTML = `<p style="font-weight:600;">${msg}</p>`;
     }
 
-    // Helper: Match Canvas dimensions with Image CSS Display dimensions
-    function alignCanvasSize() {
-      canvas.width = previewImg.clientWidth;
-      canvas.height = previewImg.clientHeight;
+    // 顯示結果 (大數字)
+    function showSuccess(count) {
+      resultCard.className = "result-card success";
+      resultContent.innerHTML = `
+        <div class="result-number">${count}</div>
+        <div class="result-label">偵測到的藥丸總數 (粒)</div>
+      `;
     }
 
-    // Helper: Set Status Badge Message
-    function setStatus(message, type) {
-      statusBadge.textContent = message;
-      statusBadge.className = `status-badge ${type}`;
+    // 顯示錯誤
+    function showError(msg) {
+      resultCard.className = "result-card error";
+      resultContent.innerHTML = `<p style="font-weight:600;">${msg}</p>`;
     }
-
-    // 4. Redraw Bounding Boxes on Screen Resize or Device Reorientation
-    window.addEventListener("resize", () => {
-      if (lastDetectionData) {
-        drawBoxes(lastDetectionData.boxes, lastDetectionData.image_size);
-      } else {
-        alignCanvasSize();
-      }
-    });
   </script>
 </body>
 </html>
