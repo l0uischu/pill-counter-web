@@ -206,8 +206,7 @@
       <div id="result-content"></div>
     </div>
   </div>
-
-  <script>
+<script>
     // 💡 記得替換成你 Render 部署成功後的 URL
     const API_URL = "https://pill-counter-api.onrender.com/count";
 
@@ -231,8 +230,7 @@
       previewImg.src = URL.createObjectURL(file);
       previewBox.style.display = "block";
 
-      // 隱藏之前的結果
-      resultCard.className = "result-card";
+      // 重新選圖時先隱藏舊結果
       resultCard.style.display = "none";
     });
 
@@ -272,26 +270,30 @@
       }
     });
 
-    // 顯示 Loading
+    // 顯示 Loading (關鍵：強制 display = block)
     function showLoading(msg) {
       resultCard.className = "result-card loading";
+      resultCard.style.display = "block";
       resultContent.innerHTML = `<p style="font-weight:600;">${msg}</p>`;
     }
 
-    // 顯示結果 (大數字)
+    // 顯示結果 (關鍵：強制 display = block)
     function showSuccess(count) {
       resultCard.className = "result-card success";
+      resultCard.style.display = "block";
       resultContent.innerHTML = `
         <div class="result-number">${count}</div>
         <div class="result-label">偵測到的藥丸總數 (粒)</div>
       `;
     }
 
-    // 顯示錯誤
+    // 顯示錯誤 (關鍵：強制 display = block)
     function showError(msg) {
       resultCard.className = "result-card error";
+      resultCard.style.display = "block";
       resultContent.innerHTML = `<p style="font-weight:600;">${msg}</p>`;
     }
   </script>
+ 
 </body>
 </html>
