@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <!-- 確保 iOS Safari 滿版且字體縮放正常 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智能藥丸計數器</title>
+    <style>
+        :root {
+            --primary-color: #007AFF; /* iOS 經典藍色 */
+            --bg-color: #F2F2F7;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1C1C1E;
+        }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #8E8E93;
+            margin-top: 0;
+            margin-bottom: 24px;
+        }
+
+        /* 隱藏原生 input，用自訂按鈕代替 */
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-camera {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            padding: 16px 24px;
+            border-radius: 14px;
+            border: none;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            transition: active 0.2s;
+        }
+
+        .btn-camera:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            position: relative;
+            display: none;
+        }
+
+        img#preview {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #E5E5EA;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            background-color: #F8F9FA;
+            display: none;
+        }
+
+        .count-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: #34C759; /* iOS 綠色 */
+            margin: 8px 0;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin-top: 20px;
+            font-size: 15px;
+            color: #8E8E93;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💊 智能藥丸數數</h1>
+    <p class="subtitle">拍攝對準藥丸，系統將自動計算數量</p>
+
+    <!-- accept="image/*" + capture="environment" 會直接調用 iOS 後置相機 -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+    
+    <button class="btn-camera" onclick="document.getElementById('cameraInput').click()">
+        📷 拍攝或選擇照片
+    </button>
+
+    <div class="preview-container" id="previewContainer">
+        <img id="preview" alt="照片預覽">
+    </div>
+
+    <div class="loading-spinner" id="loading">
+        ⏳ 分析中...<br><small style="font-size:12px; color:#AAA;">（若伺服器休眠中，首次需約 30 秒）</small>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <span style="font-size:14px; color:#666;">偵測到的藥丸總數</span>
+        <div class="count-number" id="pillCount">0</div>
+        <span style="font-size:12px; color:#8E8E93;">顆</span>
+    </div>
+</div>
+
+<script>
+    // ⚠️ 請替換為你喺 Render 部署好的網址 (包含 /count)
+    const API_URL = "https://pill-counter-api.onrender.com/count";
+
+    async function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // 顯示預覽圖
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('previewContainer');
+        preview.src = URL.createObjectURL(file);
+        previewContainer.style.display = 'block';
+
+        // 隱藏舊結果，顯示 Loading
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        // 準備傳送圖片至 API
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('pillCount').innerText = data.pill_count;
+                document.getElementById('resultBox').style.display = 'block';
+            } else {
+                alert("❌ 計算失敗，請重新拍攝。");
+            }
+        } catch (error) {
+            console.error("API Error:", error);
+            alert("❌ 網絡連線失敗或 API 無回應。");
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
